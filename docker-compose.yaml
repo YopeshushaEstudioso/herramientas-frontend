@@ -1,4 +1,39 @@
-FROM ubuntu:latest
-LABEL authors="USER"
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: tienda
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
-ENTRYPOINT ["top", "-b"]
+  backend:
+    build:
+      context: ./herramientas-node-api-main
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: tienda
+      DB_USER: user
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_SYNC_ALTER: "true"
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: production
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend-app
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
