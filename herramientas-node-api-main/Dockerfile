@@ -1,4 +1,11 @@
-FROM ubuntu:latest
-LABEL authors="USER"
+FROM node:20-alpine
 
-ENTRYPOINT ["top", "-b"]
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install --omit=dev
+
+COPY . .
+
+EXPOSE 3000
+CMD ["node", "server.js"]
